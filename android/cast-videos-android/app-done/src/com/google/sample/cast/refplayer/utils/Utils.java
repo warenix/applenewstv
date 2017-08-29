@@ -16,7 +16,6 @@
 
 package com.google.sample.cast.refplayer.utils;
 
-import com.google.sample.cast.refplayer.R;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -27,6 +26,8 @@ import android.graphics.Point;
 import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
+
+import org.dyndns.warenix.applenewstv.R;
 
 /**
  * A collection of utility methods, all static.

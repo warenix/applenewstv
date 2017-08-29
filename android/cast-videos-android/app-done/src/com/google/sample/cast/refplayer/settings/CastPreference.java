@@ -16,7 +16,7 @@
 
 package com.google.sample.cast.refplayer.settings;
 
-import com.google.sample.cast.refplayer.R;
+
 import com.google.sample.cast.refplayer.utils.Utils;
 
 import android.content.SharedPreferences;
@@ -25,6 +25,8 @@ import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+
+import org.dyndns.warenix.applenewstv.R;
 
 public class CastPreference extends PreferenceActivity
         implements OnSharedPreferenceChangeListener {

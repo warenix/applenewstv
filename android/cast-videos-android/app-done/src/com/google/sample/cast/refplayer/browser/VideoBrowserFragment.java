@@ -16,7 +16,6 @@
 
 package com.google.sample.cast.refplayer.browser;
 
-import com.google.sample.cast.refplayer.R;
 import com.google.sample.cast.refplayer.mediaplayer.LocalPlayerActivity;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 
@@ -34,6 +33,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.dyndns.warenix.applenewstv.R;
 
 import java.util.List;
 

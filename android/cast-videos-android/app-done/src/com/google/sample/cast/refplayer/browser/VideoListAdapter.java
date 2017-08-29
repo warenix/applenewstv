@@ -16,7 +16,6 @@
 
 package com.google.sample.cast.refplayer.browser;
 
-import com.google.sample.cast.refplayer.R;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 
 import com.androidquery.AQuery;
@@ -29,6 +28,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.dyndns.warenix.applenewstv.R;
 
 import java.util.List;
 

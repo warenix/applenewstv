@@ -24,7 +24,6 @@ import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.images.WebImage;
-import com.google.sample.cast.refplayer.R;
 import com.google.sample.cast.refplayer.expandedcontrols.ExpandedControlsActivity;
 import com.google.sample.cast.refplayer.settings.CastPreference;
 import com.google.sample.cast.refplayer.utils.MediaItem;
@@ -65,6 +64,8 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.VideoView;
+
+import org.dyndns.warenix.applenewstv.R;
 
 import java.util.Timer;
 import java.util.TimerTask;

@@ -18,9 +18,10 @@ package com.google.sample.cast.refplayer.expandedcontrols;
 
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.media.widget.ExpandedControllerActivity;
-import com.google.sample.cast.refplayer.R;
 
 import android.view.Menu;
+
+import org.dyndns.warenix.applenewstv.R;
 
 public class ExpandedControlsActivity extends ExpandedControllerActivity {
 

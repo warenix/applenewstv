@@ -33,6 +33,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.dyndns.warenix.applenewstv.R;
+
 public class VideoBrowserActivity extends AppCompatActivity {
 
     private static final String TAG = "VideoBrowserActivity";
