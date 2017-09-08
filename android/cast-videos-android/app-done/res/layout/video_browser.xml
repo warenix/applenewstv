@@ -29,13 +29,19 @@
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     <fragment
+        android:id="@+id/autoVideoPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@+id/toolbar"
+        class="com.google.sample.cast.refplayer.browser.AutoPlayVideoPlayerFragment"/>
+
+
+    <fragment
             android:id="@+id/browse"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/toolbar"
-            android:layout_alignParentBottom="true"
-            android:layout_marginTop="8dp"
-            class="com.google.sample.cast.refplayer.browser.VideoBrowserFragment"/>
+            android:layout_below="@+id/autoVideoPlayer"
+            class="com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment"/>
 
     <fragment
             android:id="@+id/castMiniController"

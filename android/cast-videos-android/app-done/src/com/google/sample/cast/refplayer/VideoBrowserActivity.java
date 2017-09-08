@@ -21,7 +21,10 @@ import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastState;
 import com.google.android.gms.cast.framework.CastStateListener;
 import com.google.android.gms.cast.framework.IntroductoryOverlay;
+import com.google.sample.cast.refplayer.browser.AutoPlayVideoPlayerFragment;
+import com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment;
 import com.google.sample.cast.refplayer.settings.CastPreference;
+import com.google.sample.cast.refplayer.utils.MediaItem;
 
 import android.content.Intent;
 import android.os.Build;
@@ -44,6 +47,7 @@ public class VideoBrowserActivity extends AppCompatActivity {
     private MenuItem mediaRouteMenuItem;
     private IntroductoryOverlay mIntroductoryOverlay;
     private CastStateListener mCastStateListener;
+    private AutoPlayVideoPlayerFragment mPlayerFragment;
 
     /*
      * (non-Javadoc)
@@ -54,6 +58,7 @@ public class VideoBrowserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.video_browser);
         setupActionBar();
+        setupPlayer();
 
         mCastStateListener = new CastStateListener() {
             @Override
@@ -65,6 +70,10 @@ public class VideoBrowserActivity extends AppCompatActivity {
         };
 
         mCastContext = CastContext.getSharedInstance(this);
+    }
+
+    private void setupPlayer() {
+        mPlayerFragment = (AutoPlayVideoPlayerFragment) getSupportFragmentManager().findFragmentById(R.id.autoVideoPlayer);
     }
 
     @Override
@@ -139,4 +148,10 @@ public class VideoBrowserActivity extends AppCompatActivity {
             });
         }
     }
+
+    public void onVideoItemClicked(MediaItem mediaItem) {
+        Log.d(TAG, "onVideoItemClicked() should queue the media item to auto player queue");
+        mPlayerFragment.queueVideo(mediaItem);
+    }
+
 }
