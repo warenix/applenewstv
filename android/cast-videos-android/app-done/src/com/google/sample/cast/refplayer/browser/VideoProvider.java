@@ -16,6 +16,7 @@
 
 package com.google.sample.cast.refplayer.browser;
 
+import android.text.Html;
 import android.util.Log;
 
 import com.google.sample.cast.refplayer.utils.MediaItem;
@@ -131,9 +132,9 @@ public class VideoProvider {
             for (int i = 0; i < total; ++i) {
                 video = videoList.getJSONObject(i);
                 mediaList.add(buildMediaInfo(
-                        video.getString("title"),
+                        Html.fromHtml(video.getString("title"), null, null).toString(),
                         video.getString("view_count"),
-                        video.getString("image_caption"),
+                        Html.fromHtml(video.getString("image_caption"), null, null).toString(),
                         300,
                         video.getString("video"),
                         "video/mp4",
