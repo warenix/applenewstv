@@ -16,16 +16,6 @@
 
 package com.google.sample.cast.refplayer;
 
-import com.google.android.gms.cast.framework.CastButtonFactory;
-import com.google.android.gms.cast.framework.CastContext;
-import com.google.android.gms.cast.framework.CastState;
-import com.google.android.gms.cast.framework.CastStateListener;
-import com.google.android.gms.cast.framework.IntroductoryOverlay;
-import com.google.sample.cast.refplayer.browser.AutoPlayVideoPlayerFragment;
-import com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment;
-import com.google.sample.cast.refplayer.settings.CastPreference;
-import com.google.sample.cast.refplayer.utils.MediaItem;
-
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,7 +26,19 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.CastState;
+import com.google.android.gms.cast.framework.CastStateListener;
+import com.google.android.gms.cast.framework.IntroductoryOverlay;
+import com.google.sample.cast.refplayer.applenewstv.AutoVideoPlayerFragment2;
+import com.google.sample.cast.refplayer.settings.CastPreference;
+import com.google.sample.cast.refplayer.utils.MediaItem;
+
 import org.dyndns.warenix.applenewstv.R;
+
+import java.util.List;
 
 public class VideoBrowserActivity extends AppCompatActivity {
 
@@ -47,7 +49,8 @@ public class VideoBrowserActivity extends AppCompatActivity {
     private MenuItem mediaRouteMenuItem;
     private IntroductoryOverlay mIntroductoryOverlay;
     private CastStateListener mCastStateListener;
-    private AutoPlayVideoPlayerFragment mPlayerFragment;
+    private AutoVideoPlayerFragment2 mPlayerFragment;
+    private CastSession mCastSession;
 
     /*
      * (non-Javadoc)
@@ -66,6 +69,12 @@ public class VideoBrowserActivity extends AppCompatActivity {
                 if (newState != CastState.NO_DEVICES_AVAILABLE) {
                     showIntroductoryOverlay();
                 }
+
+                if (newState == CastState.CONNECTED) {
+                    Log.d(TAG, "onCastStateChanged()" + "pass cast session to player");
+                    mCastSession = mCastContext.getSessionManager().getCurrentCastSession();
+                    mPlayerFragment.setCastSession(mCastSession);
+                }
             }
         };
 
@@ -73,8 +82,9 @@ public class VideoBrowserActivity extends AppCompatActivity {
     }
 
     private void setupPlayer() {
-        mPlayerFragment = (AutoPlayVideoPlayerFragment) getSupportFragmentManager().findFragmentById(R.id.autoVideoPlayer);
+        mPlayerFragment = (AutoVideoPlayerFragment2) getSupportFragmentManager().findFragmentById(R.id.autoVideoPlayer);
     }
+
 
     @Override
     protected void onResume() {
@@ -154,4 +164,12 @@ public class VideoBrowserActivity extends AppCompatActivity {
         mPlayerFragment.queueVideo(mediaItem);
     }
 
+    public void onMediaItemListLoaded(List<MediaItem> data) {
+        if (data == null) {
+            return;
+        }
+        for (MediaItem mediaItem : data) {
+            mPlayerFragment.queueVideo(mediaItem);
+        }
+    }
 }

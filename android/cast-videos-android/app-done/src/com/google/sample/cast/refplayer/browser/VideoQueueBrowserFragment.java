@@ -102,6 +102,8 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
         mAdapter.setData(data);
         mLoadingView.setVisibility(View.GONE);
         mEmptyView.setVisibility(null == data || data.isEmpty() ? View.VISIBLE : View.GONE);
+
+        ((VideoBrowserActivity)getActivity()).onMediaItemListLoaded(data);
     }
 
     @Override

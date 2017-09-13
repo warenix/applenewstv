@@ -16,6 +16,7 @@
 
 package com.google.sample.cast.refplayer.browser;
 
+import com.google.sample.cast.refplayer.VideoBrowserActivity;
 import com.google.sample.cast.refplayer.mediaplayer.LocalPlayerActivity;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 
