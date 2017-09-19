@@ -120,7 +120,7 @@ public class LocalVideoPlayerController implements VideoQueuePlayer, MediaPlayer
         }
         if (mPlaybackState == VideoQueuePlayerListener.STATE_PLAYING) {
 //            TODO handle skip playing
-            return;
+//            return;
         }
 
 //        seek(0, true);
@@ -132,5 +132,11 @@ public class LocalVideoPlayerController implements VideoQueuePlayer, MediaPlayer
 
         // play
         togglePlayback();
+    }
+
+    public void jumpToMedia(MediaItem mediaItem) {
+        int jumpToVideoItem = mMediaItemQueue.indexOf(mediaItem);
+        mCurrentQueueIndex = jumpToVideoItem-1;
+        playNextMediaInQueue();
     }
 }

@@ -48,6 +48,7 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
     private VideoListAdapter mAdapter;
     private View mEmptyView;
     private View mLoadingView;
+    private LinearLayoutManager layoutManager;
 
     public VideoQueueBrowserFragment() {
     }
@@ -64,7 +65,7 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
         mRecyclerView = (RecyclerView) getView().findViewById(R.id.list);
         mEmptyView = getView().findViewById(R.id.empty_view);
         mLoadingView = getView().findViewById(R.id.progress_indicator);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
         mAdapter = new VideoListAdapter(this);
@@ -90,6 +91,15 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
 //        intent.putExtra("media", item.toBundle());
 //        intent.putExtra("shouldStart", false);
 //        ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+    }
+    public void setActiveMediaItem(MediaItem mediaItem) {
+        // auto scroll when a new media item is opened
+        int position = mAdapter.getActiveMediaItemPosition();
+        if (position >= layoutManager.findFirstVisibleItemPosition() && position <= layoutManager.findLastVisibleItemPosition()) {
+            layoutManager.scrollToPosition(position+1);
+        }
+
+        mAdapter.setActiveMediaItem(mediaItem);
     }
 
     @Override

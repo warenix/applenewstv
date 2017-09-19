@@ -16,7 +16,7 @@
   -->
 <resources>
 
-    <style name="Theme.CastVideosTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.CastVideosTheme" parent="Theme.AppCompat.NoActionBar">
         <!-- Set AppCompat’s color theming attrs -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>

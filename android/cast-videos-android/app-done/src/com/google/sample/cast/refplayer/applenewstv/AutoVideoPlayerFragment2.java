@@ -1,5 +1,7 @@
 package com.google.sample.cast.refplayer.applenewstv;
 
+import android.content.res.Configuration;
+import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,9 +16,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
@@ -67,6 +71,7 @@ public class AutoVideoPlayerFragment2 extends Fragment {
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
     private MenuItem mediaRouteMenuItem;
+    private final float mAspectRatio = 360f / 640;
     private VideoQueuePlayer.VideoQueuePlayerListener mVideQueuePlayerListener = new VideoQueuePlayer.VideoQueuePlayerListener() {
         @Override
         public void onStateChange(int oldState, int newState) {
@@ -98,6 +103,10 @@ public class AutoVideoPlayerFragment2 extends Fragment {
                     // now you can control opened media
                     updateControllersVisibility(true);
                     mControllersVisible = true;
+
+                    // update toolbar title
+                    ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(String.format(mSelectedMedia.getTitle()));
+                    ((MediaItemListener)getActivity()).onMediaItemOpened(mSelectedMedia);
 
                     break;
                 case VideoQueuePlayer.VideoQueuePlayerListener.STATE_PAUSE:
@@ -153,8 +162,15 @@ public class AutoVideoPlayerFragment2 extends Fragment {
         ((LocalVideoPlayerController) mLocalPlayerController).setVideoView(mVideoView);
         ((LocalVideoPlayerController) mLocalPlayerController).setVideoQueuePlayerListener(mVideQueuePlayerListener);
 
-        updateControllersVisibility(false);
         mControllersVisible = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        updateMetadata(mControllersVisible);
+        updateControllersVisibility(mControllersVisible);
     }
 
     private void loadViews(View view) {
@@ -296,6 +312,9 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 
     // should be called from the main thread
     private void updateControllersVisibility(boolean show) {
+        if (getContext() == null) {
+            return;
+        }
         if (show) {
             ((AppCompatActivity) getActivity()).getSupportActionBar().show();
             mControllers.setVisibility(View.VISIBLE);
@@ -381,6 +400,10 @@ public class AutoVideoPlayerFragment2 extends Fragment {
         }
     }
 
+    public void jumpToMedia(MediaItem mediaItem) {
+        ((LocalVideoPlayerController) (mLocalPlayerController)).jumpToMedia(mediaItem);
+    }
+
     private class HideControllersTask extends TimerTask {
 
         @Override
@@ -390,6 +413,16 @@ public class AutoVideoPlayerFragment2 extends Fragment {
                 public void run() {
                     updateControllersVisibility(false);
                     mControllersVisible = false;
+
+//                    Window window = getActivity().getWindow();
+//                    View decorView = window.getDecorView();
+//                    // Hide both the navigation bar and the status bar.
+//                    // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
+//                    // a general rule, you should design your app to hide the status bar whenever you
+//                    // hide the navigation bar.
+//                    int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+//                            | View.SYSTEM_UI_FLAG_FULLSCREEN;
+//                    decorView.setSystemUiVisibility(uiOptions);
                 }
             });
 
@@ -410,6 +443,42 @@ public class AutoVideoPlayerFragment2 extends Fragment {
             });
         }
 
+    }
+
+    private void updateMetadata(boolean visible) {
+        Point displaySize;
+        if (!visible) {
+            mDescriptionView.setVisibility(View.GONE);
+            mTitleView.setVisibility(View.GONE);
+            mAuthorView.setVisibility(View.GONE);
+            displaySize = Utils.getDisplaySize(getContext());
+            RelativeLayout.LayoutParams lp = new
+                    RelativeLayout.LayoutParams(displaySize.x,
+                    displaySize.y
+//                            + ((AppCompatActivity)getActivity()).getSupportActionBar().getHeight()
+            );
+            lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+            mVideoView.setLayoutParams(lp);
+            mVideoView.invalidate();
+        } else {
+            mDescriptionView.setText(mSelectedMedia.getSubTitle());
+            mTitleView.setText(mSelectedMedia.getTitle());
+            mAuthorView.setText(mSelectedMedia.getStudio());
+            mDescriptionView.setVisibility(View.VISIBLE);
+            mTitleView.setVisibility(View.VISIBLE);
+            mAuthorView.setVisibility(View.VISIBLE);
+            displaySize = Utils.getDisplaySize(getContext());
+            RelativeLayout.LayoutParams lp = new
+                    RelativeLayout.LayoutParams(displaySize.x,
+                    (int) (displaySize.x * mAspectRatio));
+            lp.addRule(RelativeLayout.BELOW, R.id.toolbar);
+            mVideoView.setLayoutParams(lp);
+            mVideoView.invalidate();
+        }
+    }
+
+    public interface MediaItemListener {
+        void onMediaItemOpened(MediaItem mediaItem);
     }
 
 }

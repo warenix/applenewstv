@@ -42,4 +42,9 @@
     <color name="pressed_democast">#CC33B5E5</color>
     <color name="green">#1E9618</color>
 
+    <color name="meida_item_active">#928b8b</color>
+    <color name="meida_item_played">#626262</color>
+    <color name="meida_item_in_queue">@color/black</color>
+
+
 </resources>

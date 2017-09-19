@@ -18,6 +18,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+
+    <fragment
+        android:id="@+id/autoVideoPlayer"
+        class="com.google.sample.cast.refplayer.applenewstv.AutoVideoPlayerFragment2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/browse" />
+
+
+    <fragment
+        android:id="@+id/browse"
+        class="com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment"
+        android:layout_width="96dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true" />
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -26,21 +43,6 @@
         android:minHeight="?attr/actionBarSize"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <fragment
-        android:id="@+id/autoVideoPlayer"
-        class="com.google.sample.cast.refplayer.applenewstv.AutoVideoPlayerFragment2"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_below="@+id/toolbar" />
-
-
-    <fragment
-        android:id="@+id/browse"
-        class="com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/autoVideoPlayer" />
 
     <fragment
         android:id="@+id/castMiniController"

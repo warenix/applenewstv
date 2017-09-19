@@ -92,6 +92,8 @@ public class VideoBrowserFragment extends Fragment implements VideoListAdapter.I
         ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
     }
 
+
+
     @Override
     public Loader<List<MediaItem>> onCreateLoader(int id, Bundle args) {
         return new VideoItemLoader(getActivity(), CATALOG_URL);

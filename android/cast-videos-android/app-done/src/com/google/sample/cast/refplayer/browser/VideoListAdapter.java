@@ -31,7 +31,10 @@ import android.widget.TextView;
 
 import org.dyndns.warenix.applenewstv.R;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * An {@link ArrayAdapter} to populate the list of videos.
@@ -41,6 +44,8 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
     private static final float mAspectRatio = 9f / 16f;
     private final ItemClickListener mClickListener;
     private List<MediaItem> videos;
+    private int mActiveVideoPosition=-1;
+    private Set<Integer> mPlayedVideoPositionSet = new TreeSet<>();
 
     public VideoListAdapter(ItemClickListener clickListener) {
         mClickListener = clickListener;
@@ -73,11 +78,31 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
                 mClickListener.itemClicked(v, item, position);
             }
         });
+
+        if (position == mActiveVideoPosition) {
+            viewHolder.itemView.setBackgroundResource(R.color.meida_item_active);
+        } else if (mPlayedVideoPositionSet.contains(position)) {
+            viewHolder.itemView.setBackgroundResource(R.color.meida_item_played);
+        } else {
+            viewHolder.itemView.setBackgroundResource(R.color.meida_item_in_queue);
+        }
     }
 
     @Override
     public int getItemCount() {
         return videos == null ? 0 : videos.size();
+    }
+
+    public void setActiveMediaItem(MediaItem mediaItem) {
+        int oldActiveVideoPosition = mActiveVideoPosition;
+        mActiveVideoPosition = videos.indexOf(mediaItem);
+        mPlayedVideoPositionSet.add(mActiveVideoPosition);
+        notifyItemChanged(oldActiveVideoPosition);
+        notifyItemChanged(mActiveVideoPosition);
+    }
+
+    public int getActiveMediaItemPosition() {
+        return mActiveVideoPosition;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -146,4 +171,5 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
     public long getItemId(int position) {
         return super.getItemId(position);
     }
+
 }

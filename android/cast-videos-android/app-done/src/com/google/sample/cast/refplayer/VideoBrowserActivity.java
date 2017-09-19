@@ -17,6 +17,7 @@
 package com.google.sample.cast.refplayer;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +26,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
@@ -33,6 +37,8 @@ import com.google.android.gms.cast.framework.CastState;
 import com.google.android.gms.cast.framework.CastStateListener;
 import com.google.android.gms.cast.framework.IntroductoryOverlay;
 import com.google.sample.cast.refplayer.applenewstv.AutoVideoPlayerFragment2;
+import com.google.sample.cast.refplayer.browser.VideoBrowserFragment;
+import com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment;
 import com.google.sample.cast.refplayer.settings.CastPreference;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 
@@ -40,7 +46,7 @@ import org.dyndns.warenix.applenewstv.R;
 
 import java.util.List;
 
-public class VideoBrowserActivity extends AppCompatActivity {
+public class VideoBrowserActivity extends AppCompatActivity implements AutoVideoPlayerFragment2.MediaItemListener{
 
     private static final String TAG = "VideoBrowserActivity";
     private boolean mIsHoneyCombOrAbove = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
@@ -50,6 +56,7 @@ public class VideoBrowserActivity extends AppCompatActivity {
     private IntroductoryOverlay mIntroductoryOverlay;
     private CastStateListener mCastStateListener;
     private AutoVideoPlayerFragment2 mPlayerFragment;
+    private VideoQueueBrowserFragment mVideoBrowseFragment;
     private CastSession mCastSession;
 
     /*
@@ -83,6 +90,7 @@ public class VideoBrowserActivity extends AppCompatActivity {
 
     private void setupPlayer() {
         mPlayerFragment = (AutoVideoPlayerFragment2) getSupportFragmentManager().findFragmentById(R.id.autoVideoPlayer);
+        mVideoBrowseFragment = (VideoQueueBrowserFragment) getSupportFragmentManager().findFragmentById(R.id.browse);
     }
 
 
@@ -102,7 +110,18 @@ public class VideoBrowserActivity extends AppCompatActivity {
     private void setupActionBar() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.app_name);
+        mToolbar.setBackgroundColor(Color.TRANSPARENT);
         setSupportActionBar(mToolbar);
+
+        // Status bar :: Transparent
+        Window window = this.getWindow();
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(Color.TRANSPARENT);
+        }
     }
 
     @Override
@@ -160,8 +179,8 @@ public class VideoBrowserActivity extends AppCompatActivity {
     }
 
     public void onVideoItemClicked(MediaItem mediaItem) {
-        Log.d(TAG, "onVideoItemClicked() should queue the media item to auto player queue");
-        mPlayerFragment.queueVideo(mediaItem);
+        Log.d(TAG, "onVideoItemClicked() jump the queue to play this item");
+        mPlayerFragment.jumpToMedia(mediaItem);
     }
 
     public void onMediaItemListLoaded(List<MediaItem> data) {
@@ -171,5 +190,11 @@ public class VideoBrowserActivity extends AppCompatActivity {
         for (MediaItem mediaItem : data) {
             mPlayerFragment.queueVideo(mediaItem);
         }
+    }
+
+    @Override
+    public void onMediaItemOpened(MediaItem mediaItem) {
+        Log.d(TAG, "highlight media item on browser fragment");
+        mVideoBrowseFragment.setActiveMediaItem(mediaItem);
     }
 }
