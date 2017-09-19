@@ -29,8 +29,8 @@
     <color name="mr_custom_title">#EEFF41</color>
     <color name="actionbar">#506a7d</color>
 
-    <color name="primary">#03A9F4</color>
-    <color name="primary_dark">#0288D1</color>
+    <color name="primary">#928b8b</color>
+    <color name="primary_dark">#626262</color>
     <color name="primary_light">#B3E5FC</color>
     <color name="accent">@color/primary</color>
     <color name="primary_text">#212121</color>
