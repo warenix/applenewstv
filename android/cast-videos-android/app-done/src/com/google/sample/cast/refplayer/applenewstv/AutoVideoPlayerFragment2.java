@@ -1,6 +1,5 @@
 package com.google.sample.cast.refplayer.applenewstv;
 
-import android.content.res.Configuration;
 import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -16,7 +15,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -26,9 +24,13 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.androidquery.AQuery;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManagerListener;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import com.google.android.gms.common.images.WebImage;
 import com.google.sample.cast.refplayer.mediaplayer.LocalPlayerActivity;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 import com.google.sample.cast.refplayer.utils.Utils;
@@ -46,6 +48,7 @@ public class AutoVideoPlayerFragment2 extends Fragment {
     private static final String TAG = AutoVideoPlayerFragment2.class.getSimpleName()
             .substring(0, Math.min(25, AutoVideoPlayerFragment2.class.getSimpleName().length() - 1));
     private final Handler mHandler = new Handler();
+    private final float mAspectRatio = 360f / 640;
     private VideoQueuePlayer mLocalPlayerController;
     private VideoView mVideoView;
     private TextView mTitleView;
@@ -71,7 +74,25 @@ public class AutoVideoPlayerFragment2 extends Fragment {
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
     private MenuItem mediaRouteMenuItem;
-    private final float mAspectRatio = 360f / 640;
+    private RemoteMediaClient.ProgressListener mCastProgressListener = new RemoteMediaClient.ProgressListener() {
+        private float mPercentage;
+
+        @Override
+        public void onProgressUpdated(long progressMs, long durationMs) {
+            mPercentage = ((float) progressMs) / durationMs;
+//            Log.d(TAG, String.format("onProgressUpdated() %f %%", mPercentage));
+//            if (mPercentage > 0.985) {
+            if (progressMs + 1000 > durationMs) {
+                Log.d(TAG, String.format("onProgressUpdated() treat video completed"));
+                mLocalPlayerController.onMediaItemCompleted();
+            } else {
+                Log.d(TAG, String.format("onProgressUpdated() progressMs[%d] durationMs[%d]", progressMs, durationMs));
+                updateSeekbar((int) Math.round(progressMs), (int) Math.round(durationMs));
+            }
+
+        }
+    };
+    private RemoteMediaClient remoteMediaClient;
     private VideoQueuePlayer.VideoQueuePlayerListener mVideQueuePlayerListener = new VideoQueuePlayer.VideoQueuePlayerListener() {
         @Override
         public void onStateChange(int oldState, int newState) {
@@ -92,9 +113,16 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 
                     break;
                 case VideoQueuePlayer.VideoQueuePlayerListener.STATE_OPENED:
+
                     mSelectedMedia = ((LocalVideoPlayerController) (mLocalPlayerController)).getSelectedMedia();
-                    Log.d(TAG, "onStateChange() STATE_OPENED, set video url:" + mSelectedMedia.getUrl());
-                    mVideoView.setVideoURI(Uri.parse(mSelectedMedia.getUrl()));
+
+                    if (isCastConnected()) {
+                        setCoverArtStatus(mSelectedMedia.getImage(0));
+                    } else {
+                        mVideoView.setVideoURI(Uri.parse(mSelectedMedia.getUrl()));
+                        setCoverArtStatus(null);
+                    }
+                    mSeekbar.setProgress(0);
 
                     // no need to show cover art for local player
 //                    Log.d(TAG, String.format("onStateChange() STATE_OPENED, set cover art"));
@@ -104,9 +132,10 @@ public class AutoVideoPlayerFragment2 extends Fragment {
                     updateControllersVisibility(true);
                     mControllersVisible = true;
 
+
                     // update toolbar title
-                    ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(String.format(mSelectedMedia.getTitle()));
-                    ((MediaItemListener)getActivity()).onMediaItemOpened(mSelectedMedia);
+                    ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(String.format(mSelectedMedia.getTitle()));
+                    ((MediaItemListener) getActivity()).onMediaItemOpened(mSelectedMedia);
 
                     break;
                 case VideoQueuePlayer.VideoQueuePlayerListener.STATE_PAUSE:
@@ -131,8 +160,17 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 //                    setCoverArtStatus(null);
 
                     // try playing video
-                    Log.d(TAG, String.format("onStateChange() STATE_PLAYING, start playing video"));
-                    mVideoView.start();
+                    Log.d(TAG, "onStateChange() STATE_PLAYING, set video url:" + mSelectedMedia.getUrl());
+                    if (isCastConnected()) {
+//                        mVideoView.pause();
+//                        mVideoView.seekTo(mSeekbar.getProgress());
+                        Log.d(TAG, String.format("onStateChange() STATE_PLAYING, play on remote"));
+                        loadRemoteMedia(mSeekbar.getProgress(), true);
+                    } else {
+                        Log.d(TAG, "onStateChange() STATE_PLAYING, play on local player");
+                        mVideoView.start();
+                        restartTrickplayTimer();
+                    }
                     startControllersTimer();
                     break;
             }
@@ -237,16 +275,14 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-//                if (mPlaybackState == LocalPlayerActivity.PlaybackState.PLAYING) {
-//                    play(seekBar.getProgress());
-//                } else if (mPlaybackState != LocalPlayerActivity.PlaybackState.IDLE) {
-//                    mVideoView.seekTo(seekBar.getProgress());
-//                }
-//                mLocalPlayerController.seek(seekBar.getProgress(), true);
+                // handle when dragging seekbar to the end
+                if (seekBar.getProgress() == seekBar.getMax()) {
+                    mLocalPlayerController.onMediaItemCompleted();
+                } else {
+                    mLocalPlayerController.seek(seekBar.getProgress(), true);
+                }
+                startControllersTimer();
 
-                mLocalPlayerController.seek(seekBar.getProgress(), true);
-
-//                startControllersTimer();
             }
 
             @Override
@@ -298,12 +334,16 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 
     private void restartTrickplayTimer() {
         stopTrickplayTimer();
-        mSeekbarTimer = new Timer();
-        mSeekbarTimer.scheduleAtFixedRate(new UpdateSeekbarTask(), 100, 1000);
+        if (!isCastConnected()) {
+            Log.d(TAG, "restartTrickplayTimer() schedule update seekbar task");
+            mSeekbarTimer = new Timer();
+            mSeekbarTimer.scheduleAtFixedRate(new UpdateSeekbarTask(), 100, 1000);
+        }
         Log.d(TAG, "Restarted TrickPlay Timer");
     }
 
     private void updateSeekbar(int position, int duration) {
+//        Log.d(TAG, String.format("updateSeekbar() position[%d] duration[%d]", position, duration));
         mSeekbar.setProgress(position);
         mSeekbar.setMax(duration);
         mStartText.setText(Utils.formatMillis(position));
@@ -336,55 +376,24 @@ public class AutoVideoPlayerFragment2 extends Fragment {
         if (mControllersTimer != null) {
             mControllersTimer.cancel();
         }
-        if (mLocation == LocalPlayerActivity.PlaybackLocation.REMOTE) {
-            return;
-        }
+
         mControllersTimer = new Timer();
         mControllersTimer.schedule(new HideControllersTask(), 2000);
     }
 
     public void setCastSession(CastSession castSession) {
         this.mCastSession = castSession;
+        Log.d(TAG, "setCastSession() is called");
     }
 
     public void queueVideo(MediaItem mediaItem) {
         mLocalPlayerController.queueMedia(mediaItem);
     }
 
-    private void updatePlayButton(LocalPlayerActivity.PlaybackState state) {
-        Log.d(TAG, "Controls: PlayBackState: " + state);
+    protected boolean isCastConnected() {
         boolean isConnected = (mCastSession != null)
                 && (mCastSession.isConnected() || mCastSession.isConnecting());
-        mControllers.setVisibility(isConnected ? View.GONE : View.VISIBLE);
-        mPlayCircle.setVisibility(isConnected ? View.GONE : View.VISIBLE);
-        switch (state) {
-            case PLAYING:
-                mLoading.setVisibility(View.INVISIBLE);
-                mPlayPause.setVisibility(View.VISIBLE);
-                mPlayPause.setImageDrawable(
-                        getResources().getDrawable(R.drawable.ic_av_pause_dark));
-                mPlayCircle.setVisibility(isConnected ? View.VISIBLE : View.GONE);
-                break;
-            case IDLE:
-                mPlayCircle.setVisibility(View.VISIBLE);
-                mControllers.setVisibility(View.GONE);
-                mCoverArt.setVisibility(View.VISIBLE);
-                mVideoView.setVisibility(View.INVISIBLE);
-                break;
-            case PAUSED:
-                mLoading.setVisibility(View.INVISIBLE);
-                mPlayPause.setVisibility(View.VISIBLE);
-                mPlayPause.setImageDrawable(
-                        getResources().getDrawable(R.drawable.ic_av_play_dark));
-                mPlayCircle.setVisibility(isConnected ? View.VISIBLE : View.GONE);
-                break;
-            case BUFFERING:
-                mPlayPause.setVisibility(View.INVISIBLE);
-                mLoading.setVisibility(View.VISIBLE);
-                break;
-            default:
-                break;
-        }
+        return isConnected;
     }
 
     private void setCoverArtStatus(String url) {
@@ -392,16 +401,113 @@ public class AutoVideoPlayerFragment2 extends Fragment {
             Log.d(TAG, "coverart visible");
             mAquery.id(mCoverArt).image(url);
             mCoverArt.setVisibility(View.VISIBLE);
-            mVideoView.setVisibility(View.INVISIBLE);
+//            mVideoView.setVisibility(View.INVISIBLE);
         } else {
             Log.d(TAG, "coverart hidden");
             mCoverArt.setVisibility(View.GONE);
-            mVideoView.setVisibility(View.VISIBLE);
+//            mVideoView.setVisibility(View.VISIBLE);
         }
     }
 
     public void jumpToMedia(MediaItem mediaItem) {
         ((LocalVideoPlayerController) (mLocalPlayerController)).jumpToMedia(mediaItem);
+    }
+
+    private void updateMetadata(boolean visible) {
+        Point displaySize;
+        if (!visible) {
+            mDescriptionView.setVisibility(View.GONE);
+            mTitleView.setVisibility(View.GONE);
+            mAuthorView.setVisibility(View.GONE);
+            displaySize = Utils.getDisplaySize(getContext());
+            RelativeLayout.LayoutParams lp = new
+                    RelativeLayout.LayoutParams(displaySize.x,
+                    displaySize.y
+//                            + ((AppCompatActivity)getActivity()).getSupportActionBar().getHeight()
+            );
+            lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+            mVideoView.setLayoutParams(lp);
+            mVideoView.invalidate();
+        } else {
+            mDescriptionView.setText(mSelectedMedia.getSubTitle());
+            mTitleView.setText(mSelectedMedia.getTitle());
+            mAuthorView.setText(mSelectedMedia.getStudio());
+            mDescriptionView.setVisibility(View.VISIBLE);
+            mTitleView.setVisibility(View.VISIBLE);
+            mAuthorView.setVisibility(View.VISIBLE);
+            displaySize = Utils.getDisplaySize(getContext());
+            RelativeLayout.LayoutParams lp = new
+                    RelativeLayout.LayoutParams(displaySize.x,
+                    (int) (displaySize.x * mAspectRatio));
+            lp.addRule(RelativeLayout.BELOW, R.id.toolbar);
+            mVideoView.setLayoutParams(lp);
+            mVideoView.invalidate();
+        }
+    }
+
+    private void loadRemoteMedia(int position, boolean autoPlay) {
+        if (mCastSession == null) {
+            return;
+        }
+        remoteMediaClient = mCastSession.getRemoteMediaClient();
+        if (remoteMediaClient == null) {
+            return;
+        }
+//        remoteMediaClient.addListener(new RemoteMediaClient.Listener() {
+//            @Override
+//            public void onStatusUpdated() {
+////                Intent intent = new Intent(getContext(), ExpandedControlsActivity.class);
+////                startActivity(intent);
+//                remoteMediaClient.removeListener(this);
+//            }
+//
+//            @Override
+//            public void onMetadataUpdated() {
+//            }
+//
+//            @Override
+//            public void onQueueStatusUpdated() {
+//            }
+//
+//            @Override
+//            public void onPreloadStatusUpdated() {
+//            }
+//
+//            @Override
+//            public void onSendingRemoteMediaRequest() {
+//            }
+//
+//            @Override
+//            public void onAdBreakStatusUpdated() {
+//
+//            }
+//        });
+        remoteMediaClient.addProgressListener(mCastProgressListener, 500);
+        if (position == 0) {
+            remoteMediaClient.load(buildMediaInfo(), autoPlay, position);
+        } else {
+            remoteMediaClient.seek(position);
+        }
+    }
+
+    private MediaInfo buildMediaInfo() {
+        MediaMetadata movieMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
+
+        movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, mSelectedMedia.getStudio());
+        movieMetadata.putString(MediaMetadata.KEY_TITLE, mSelectedMedia.getTitle());
+        movieMetadata.addImage(new WebImage(Uri.parse(mSelectedMedia.getImage(0))));
+        movieMetadata.addImage(new WebImage(Uri.parse(mSelectedMedia.getImage(1))));
+
+        return new MediaInfo.Builder(mSelectedMedia.getUrl())
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setContentType("videos/mp4")
+                .setMetadata(movieMetadata)
+                .setStreamDuration(mSelectedMedia.getDuration() * 1000)
+                .build();
+    }
+
+    public interface MediaItemListener {
+        void onMediaItemOpened(MediaItem mediaItem);
     }
 
     private class HideControllersTask extends TimerTask {
@@ -445,40 +551,5 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 
     }
 
-    private void updateMetadata(boolean visible) {
-        Point displaySize;
-        if (!visible) {
-            mDescriptionView.setVisibility(View.GONE);
-            mTitleView.setVisibility(View.GONE);
-            mAuthorView.setVisibility(View.GONE);
-            displaySize = Utils.getDisplaySize(getContext());
-            RelativeLayout.LayoutParams lp = new
-                    RelativeLayout.LayoutParams(displaySize.x,
-                    displaySize.y
-//                            + ((AppCompatActivity)getActivity()).getSupportActionBar().getHeight()
-            );
-            lp.addRule(RelativeLayout.CENTER_IN_PARENT);
-            mVideoView.setLayoutParams(lp);
-            mVideoView.invalidate();
-        } else {
-            mDescriptionView.setText(mSelectedMedia.getSubTitle());
-            mTitleView.setText(mSelectedMedia.getTitle());
-            mAuthorView.setText(mSelectedMedia.getStudio());
-            mDescriptionView.setVisibility(View.VISIBLE);
-            mTitleView.setVisibility(View.VISIBLE);
-            mAuthorView.setVisibility(View.VISIBLE);
-            displaySize = Utils.getDisplaySize(getContext());
-            RelativeLayout.LayoutParams lp = new
-                    RelativeLayout.LayoutParams(displaySize.x,
-                    (int) (displaySize.x * mAspectRatio));
-            lp.addRule(RelativeLayout.BELOW, R.id.toolbar);
-            mVideoView.setLayoutParams(lp);
-            mVideoView.invalidate();
-        }
-    }
-
-    public interface MediaItemListener {
-        void onMediaItemOpened(MediaItem mediaItem);
-    }
 
 }

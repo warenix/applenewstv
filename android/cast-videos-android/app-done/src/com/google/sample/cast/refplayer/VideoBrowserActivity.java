@@ -36,9 +36,12 @@ import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.CastState;
 import com.google.android.gms.cast.framework.CastStateListener;
 import com.google.android.gms.cast.framework.IntroductoryOverlay;
+import com.google.android.gms.cast.framework.SessionManagerListener;
+import com.google.android.gms.cast.framework.media.widget.MiniControllerFragment;
 import com.google.sample.cast.refplayer.applenewstv.AutoVideoPlayerFragment2;
 import com.google.sample.cast.refplayer.browser.VideoBrowserFragment;
 import com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment;
+import com.google.sample.cast.refplayer.mediaplayer.LocalPlayerActivity;
 import com.google.sample.cast.refplayer.settings.CastPreference;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 
@@ -58,6 +61,8 @@ public class VideoBrowserActivity extends AppCompatActivity implements AutoVideo
     private AutoVideoPlayerFragment2 mPlayerFragment;
     private VideoQueueBrowserFragment mVideoBrowseFragment;
     private CastSession mCastSession;
+    private MiniControllerFragment mCastMiniControllerFragment;
+    private SessionManagerListener<CastSession> mSessionManagerListener;
 
     /*
      * (non-Javadoc)
@@ -69,18 +74,21 @@ public class VideoBrowserActivity extends AppCompatActivity implements AutoVideo
         setContentView(R.layout.video_browser);
         setupActionBar();
         setupPlayer();
+        setupCastListener();
 
         mCastStateListener = new CastStateListener() {
             @Override
             public void onCastStateChanged(int newState) {
                 if (newState != CastState.NO_DEVICES_AVAILABLE) {
-                    showIntroductoryOverlay();
+//                    showIntroductoryOverlay();
                 }
 
                 if (newState == CastState.CONNECTED) {
                     Log.d(TAG, "onCastStateChanged()" + "pass cast session to player");
                     mCastSession = mCastContext.getSessionManager().getCurrentCastSession();
                     mPlayerFragment.setCastSession(mCastSession);
+
+                    setupCastPlayer();
                 }
             }
         };
@@ -91,6 +99,87 @@ public class VideoBrowserActivity extends AppCompatActivity implements AutoVideo
     private void setupPlayer() {
         mPlayerFragment = (AutoVideoPlayerFragment2) getSupportFragmentManager().findFragmentById(R.id.autoVideoPlayer);
         mVideoBrowseFragment = (VideoQueueBrowserFragment) getSupportFragmentManager().findFragmentById(R.id.browse);
+    }
+
+    private void setupCastPlayer() {
+//        mCastMiniControllerFragment = (MiniControllerFragment)getSupportFragmentManager().findFragmentById(R.id.castMiniController);
+//        findViewById(R.id.castMiniController).setVisibility(View.VISIBLE);
+//        findViewById(R.id.autoVideoPlayer).setVisibility(View.GONE);
+        getSupportActionBar().show();
+    }
+
+    private void setupCastListener() {
+        mSessionManagerListener = new SessionManagerListener<CastSession>() {
+
+            @Override
+            public void onSessionEnded(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionResumed(CastSession session, boolean wasSuspended) {
+                onApplicationConnected(session);
+            }
+
+            @Override
+            public void onSessionResumeFailed(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionStarted(CastSession session, String sessionId) {
+                onApplicationConnected(session);
+            }
+
+            @Override
+            public void onSessionStartFailed(CastSession session, int error) {
+                onApplicationDisconnected();
+            }
+
+            @Override
+            public void onSessionStarting(CastSession session) {
+            }
+
+            @Override
+            public void onSessionEnding(CastSession session) {
+            }
+
+            @Override
+            public void onSessionResuming(CastSession session, String sessionId) {
+            }
+
+            @Override
+            public void onSessionSuspended(CastSession session, int reason) {
+            }
+
+            private void onApplicationConnected(CastSession castSession) {
+                mCastSession = castSession;
+                setupCastPlayer();
+//                if (null != mSelectedMedia) {
+//
+//                    if (mPlaybackState == LocalPlayerActivity.PlaybackState.PLAYING) {
+//                        mVideoView.pause();
+//                        loadRemoteMedia(mSeekbar.getProgress(), true);
+//                        return;
+//                    } else {
+//                        mPlaybackState = LocalPlayerActivity.PlaybackState.IDLE;
+//                        updatePlaybackLocation(LocalPlayerActivity.PlaybackLocation.REMOTE);
+//                    }
+//                }
+//                updatePlayButton(mPlaybackState);
+                // TODO continue playing in remote
+                invalidateOptionsMenu();
+            }
+
+            private void onApplicationDisconnected() {
+//                updatePlaybackLocation(LocalPlayerActivity.PlaybackLocation.LOCAL);
+//                mPlaybackState = LocalPlayerActivity.PlaybackState.IDLE;
+//                mLocation = LocalPlayerActivity.PlaybackLocation.LOCAL;
+//                updatePlayButton(mPlaybackState);
+                // TODO continue playing in local
+                invalidateOptionsMenu();
+            }
+        };
     }
 
 

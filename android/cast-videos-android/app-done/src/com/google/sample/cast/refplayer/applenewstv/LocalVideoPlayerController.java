@@ -108,9 +108,15 @@ public class LocalVideoPlayerController implements VideoQueuePlayer, MediaPlayer
     }
 
     @Override
+    public void onMediaItemCompleted() {
+        mVideoView.stopPlayback();
+        changeState(VideoQueuePlayerListener.STATE_IDLE);
+    }
+
+    @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         mediaPlayer.stop();
-        changeState(VideoQueuePlayerListener.STATE_IDLE);
+        onMediaItemCompleted();
     }
 
     public void playNextMediaInQueue() {

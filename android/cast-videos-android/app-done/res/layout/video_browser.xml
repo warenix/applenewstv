@@ -44,12 +44,12 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <fragment
-        android:id="@+id/castMiniController"
-        class="com.google.android.gms.cast.framework.media.widget.MiniControllerFragment"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone" />
+    <!--<fragment-->
+        <!--android:id="@+id/castMiniController"-->
+        <!--class="com.google.android.gms.cast.framework.media.widget.MiniControllerFragment"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:visibility="visible" />-->
 
 </RelativeLayout>

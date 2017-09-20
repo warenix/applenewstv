@@ -58,7 +58,7 @@
                 android:label="@string/app_name"
                 android:launchMode="singleInstance"
                 android:theme="@style/Theme.CastVideosDark"
-                android:screenOrientation="portrait">
+                android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>

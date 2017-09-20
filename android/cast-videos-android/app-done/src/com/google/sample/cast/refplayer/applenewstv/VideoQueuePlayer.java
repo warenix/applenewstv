@@ -45,6 +45,8 @@ public interface VideoQueuePlayer {
      */
     void queueMedia(MediaItem mediaItem);
 
+    void onMediaItemCompleted();
+
     interface VideoQueuePlayerListener {
 
         int STATE_IDLE = 1;
