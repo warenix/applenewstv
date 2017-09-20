@@ -405,7 +405,7 @@ public class AutoVideoPlayerFragment2 extends Fragment {
         } else {
             Log.d(TAG, "coverart hidden");
             mCoverArt.setVisibility(View.GONE);
-//            mVideoView.setVisibility(View.VISIBLE);
+            mVideoView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -495,8 +495,10 @@ public class AutoVideoPlayerFragment2 extends Fragment {
 
         movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, mSelectedMedia.getStudio());
         movieMetadata.putString(MediaMetadata.KEY_TITLE, mSelectedMedia.getTitle());
-        movieMetadata.addImage(new WebImage(Uri.parse(mSelectedMedia.getImage(0))));
-        movieMetadata.addImage(new WebImage(Uri.parse(mSelectedMedia.getImage(1))));
+        if (mSelectedMedia.getImages().size()>0) {
+            movieMetadata.addImage(new WebImage(Uri.parse(mSelectedMedia.getImage(0))));
+//            movieMetadata.addImage(new WebImage(Uri.parse(mSelectedMedia.getImage(1))));
+        }
 
         return new MediaInfo.Builder(mSelectedMedia.getUrl())
                 .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)

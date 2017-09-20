@@ -130,14 +130,19 @@ public class LocalVideoPlayerController implements VideoQueuePlayer, MediaPlayer
         }
 
 //        seek(0, true);
-        ++mCurrentQueueIndex;
+        if (mCurrentQueueIndex +1 == mMediaItemQueue.size()) {
+            Log.d(TAG, "No more videos");
+            changeState(VideoQueuePlayerListener.STATE_IDLE);
+        } else {
+            ++mCurrentQueueIndex;
 
-        mSelectedMedia = mMediaItemQueue.get(mCurrentQueueIndex);
-        Log.d(TAG, "playNextMediaInQueue() loaded next media in queue. " + mSelectedMedia.getTitle());
-        changeState(VideoQueuePlayerListener.STATE_OPENED);
+            mSelectedMedia = mMediaItemQueue.get(mCurrentQueueIndex);
+            Log.d(TAG, "playNextMediaInQueue() loaded next media in queue. " + mSelectedMedia.getTitle());
+            changeState(VideoQueuePlayerListener.STATE_OPENED);
 
-        // play
-        togglePlayback();
+            // play
+            togglePlayback();
+        }
     }
 
     public void jumpToMedia(MediaItem mediaItem) {

@@ -18,15 +18,16 @@ package com.google.sample.cast.refplayer;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -39,17 +40,16 @@ import com.google.android.gms.cast.framework.IntroductoryOverlay;
 import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.cast.framework.media.widget.MiniControllerFragment;
 import com.google.sample.cast.refplayer.applenewstv.AutoVideoPlayerFragment2;
-import com.google.sample.cast.refplayer.browser.VideoBrowserFragment;
 import com.google.sample.cast.refplayer.browser.VideoQueueBrowserFragment;
-import com.google.sample.cast.refplayer.mediaplayer.LocalPlayerActivity;
 import com.google.sample.cast.refplayer.settings.CastPreference;
 import com.google.sample.cast.refplayer.utils.MediaItem;
 
 import org.dyndns.warenix.applenewstv.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class VideoBrowserActivity extends AppCompatActivity implements AutoVideoPlayerFragment2.MediaItemListener{
+public class VideoBrowserActivity extends AppCompatActivity implements AutoVideoPlayerFragment2.MediaItemListener {
 
     private static final String TAG = "VideoBrowserActivity";
     private boolean mIsHoneyCombOrAbove = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
@@ -94,6 +94,33 @@ public class VideoBrowserActivity extends AppCompatActivity implements AutoVideo
         };
 
         mCastContext = CastContext.getSharedInstance(this);
+
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        // ATTENTION: This was auto-generated to handle app links.
+        Intent appLinkIntent = getIntent();
+        String appLinkAction = appLinkIntent.getAction();
+        Uri appLinkData = appLinkIntent.getData();
+        if (appLinkData != null) {
+            Log.d(TAG, "onCreate() handle app link:" + appLinkAction + " data:" + appLinkData);
+            MediaItem mediaItem = new MediaItem();
+            mediaItem.setUrl(appLinkData.toString());
+            mediaItem.setTitle("Sample Video");
+            mediaItem.setContentType("video/mp4");
+            mediaItem.setStudio("");
+            mediaItem.setSubTitle("");
+            mediaItem.setDuration(3000);
+            ArrayList<MediaItem> appLinkMediaItemList = new ArrayList<>();
+            appLinkMediaItemList.add(mediaItem);
+            mVideoBrowseFragment.playAdhocMediaItem(mediaItem);
+            onMediaItemListLoaded(appLinkMediaItemList);
+        } else {
+            mVideoBrowseFragment.loadPlayList();
+        }
     }
 
     private void setupPlayer() {
@@ -205,8 +232,7 @@ public class VideoBrowserActivity extends AppCompatActivity implements AutoVideo
         // Status bar :: Transparent
         Window window = this.getWindow();
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-        {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.setStatusBarColor(Color.TRANSPARENT);

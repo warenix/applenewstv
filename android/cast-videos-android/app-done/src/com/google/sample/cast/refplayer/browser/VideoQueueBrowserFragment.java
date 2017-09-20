@@ -33,6 +33,7 @@ import com.google.sample.cast.refplayer.utils.MediaItem;
 
 import org.dyndns.warenix.applenewstv.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,6 +71,15 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
         mRecyclerView.setLayoutManager(layoutManager);
         mAdapter = new VideoListAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public void playAdhocMediaItem(MediaItem mediaItem) {
+        List<MediaItem> data = new ArrayList<>();
+        data.add(mediaItem);
+        mAdapter.setData(data);
+    }
+
+    public void loadPlayList() {
         getLoaderManager().initLoader(0, null, this);
     }
 
@@ -92,11 +102,12 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
 //        intent.putExtra("shouldStart", false);
 //        ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
     }
+
     public void setActiveMediaItem(MediaItem mediaItem) {
         // auto scroll when a new media item is opened
         int position = mAdapter.getActiveMediaItemPosition();
         if (position >= layoutManager.findFirstVisibleItemPosition() && position <= layoutManager.findLastVisibleItemPosition()) {
-            layoutManager.scrollToPosition(position+1);
+            layoutManager.scrollToPosition(position + 1);
         }
 
         mAdapter.setActiveMediaItem(mediaItem);
@@ -113,7 +124,7 @@ public class VideoQueueBrowserFragment extends Fragment implements VideoListAdap
         mLoadingView.setVisibility(View.GONE);
         mEmptyView.setVisibility(null == data || data.isEmpty() ? View.VISIBLE : View.GONE);
 
-        ((VideoBrowserActivity)getActivity()).onMediaItemListLoaded(data);
+        ((VideoBrowserActivity) getActivity()).onMediaItemListLoaded(data);
     }
 
     @Override
